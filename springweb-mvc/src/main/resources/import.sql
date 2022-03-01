@@ -5,11 +5,10 @@ INSERT INTO empleados(nombre, apellido, email, telefono) VALUES('Gloria', 'Bendi
 INSERT INTO empleados(nombre, apellido, email, telefono) VALUES('Camilo', 'Cela', 'cc@email.com', 667686);
 INSERT INTO empleados(nombre, apellido, email, telefono) VALUES('Perico', 'Irazusta', 'pi@email.com', 666348);
 
+INSERT INTO departamentos(nombre) VALUES('ADA');
+INSERT INTO departamentos(nombre) VALUES('IBERIA');
 
---INSERT INTO proyectos(numbre, fecha_inicio, fecha_fin, activo) VALUES('Hombre', '17/01/1994', '-------', true);
---INSERT INTO proyectos(numbre, fecha_inicio, fecha_fin, activo) VALUES('Iberia', '20/12/2020', '20/01/2022', true);
---
---INSERT INTO Departamentos(nombre) VALUES('ADA');
---INSERT INTO Departamentos(nombre) VALUES('IBERIA');
+INSERT INTO proyectos(nombre, fecha_inicio, fecha_fin, activo) VALUES('Hombre', '17/01/1994', '-------', 'finalizado');
+INSERT INTO proyectos(nombre, fecha_inicio, fecha_fin, activo) VALUES('Iberia', '20/12/2020', '20/01/2022', 'activo');
 
 
