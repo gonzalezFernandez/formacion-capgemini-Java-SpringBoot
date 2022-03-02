@@ -1,5 +1,9 @@
 package com.formacionSpringBoot.apirest.controller;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,8 +19,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.formacionSpringBoot.apirest.entity.Cliente;
 import com.formacionSpringBoot.apirest.service.ClienteService;
@@ -150,12 +156,76 @@ public class ClienteRestController {
 		
 	}
 	
+//	@DeleteMapping("/cliente/{id}")
+//	public void deleteCliente(@PathVariable Long id) {
+//		servicio.delete(id);
+//	}
+	
 	@DeleteMapping("/cliente/{id}")
-	public void deleteCliente(@PathVariable Long id) {
-		servicio.delete(id);
+	public ResponseEntity<?> deleteCliente(@PathVariable Long id) {
+		
+		Cliente clienteActual = servicio.findById(id);
+		
+		Map<String, Object> response = new HashMap<>();
+		
+		if(clienteActual == null) {
+			response.put("mensaje", "Error: no se pudo ELIMINAR el cliente con ID: "+id.toString()+" no existe en la base de datos");
+			return new ResponseEntity<Map<String,Object>>(response, HttpStatus.NOT_FOUND);
+		}
+		
+		try {
+			
+			
+			servicio.delete(id);
+			
+			}catch (DataAccessException e) {//MUY ESPECÍFICO, EXCEPCIONES SOBRE EL DAO
+				response.put("mensaje", "Error al rellenar la consulta a base de datos");
+				response.put("error", e.getMessage().concat(e.getMostSpecificCause().getMessage()));
+				
+				return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			
+			response.put("mensaje", "El cliente ha sido ELIMINADO éxito!");
+			response.put("cliente", clienteActual);
+			
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.OK);
+			
+			
+		}
+	
+	@PostMapping("cliente/upload")
+	public ResponseEntity<?> upload(@RequestParam("archivo") MultipartFile archivo, @RequestParam("id") Long id){
+		
+		Map<String, Object> response = new HashMap<>();
+		
+		Cliente cliente = servicio.findById(id);
+		
+		if(!archivo.isEmpty()) {
+			String nombreArchivo = archivo.getOriginalFilename();
+			Path rutaArchivo = 	Paths.get("uploads").resolve(nombreArchivo).toAbsolutePath();
+		
+		try {
+			Files.copy(archivo.getInputStream(), rutaArchivo);
+			
+		}catch(IOException e) {
+			
+			response.put("mensaje", "Error al subir la imagen");
+			response.put("error", e.getMessage().concat(": ").concat(e.getCause().getMessage()));
+			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			
+		}
+		
+		cliente.setImagen(nombreArchivo);
+		servicio.save(cliente);
+		
+		response.put("cliente", cliente);
+		response.put("mensaje", "Has subido correctamente la imagen: "+nombreArchivo);
+		
+		
+	}
+		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+	}
+		
 	}
 	
-	//@DeleteMapping
 
-	
-}
