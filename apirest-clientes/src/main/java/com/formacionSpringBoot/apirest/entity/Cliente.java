@@ -35,6 +35,9 @@ public class Cliente {
 	@Temporal(TemporalType.DATE)
 	private Date createdAt;
 	
+	
+	private String imagen;
+	
 	@PrePersist
 	public void prePersist() {
 		if(createdAt == null) {
@@ -44,17 +47,18 @@ public class Cliente {
 	}
 	
 	
-	
-	
+	public String getImagen() {
+		return imagen;
+	}
+	public void setImagen(String imagen) {
+		this.imagen = imagen;
+	}
 	public String getApellido() {
 		return apellido;
 	}
-
-
 	public void setApellido(String apellido) {
 		this.apellido = apellido;
 	}
-
 	public Long getId() {
 		return id;
 	}
