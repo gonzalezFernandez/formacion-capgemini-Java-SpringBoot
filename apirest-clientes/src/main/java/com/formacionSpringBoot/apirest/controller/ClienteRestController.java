@@ -1,15 +1,21 @@
 package com.formacionSpringBoot.apirest.controller;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -178,6 +184,20 @@ public class ClienteRestController {
 			
 			servicio.delete(id);
 			
+			String nombreFotoAnterior = clienteActual.getImagen();
+			
+			if(nombreFotoAnterior != null && nombreFotoAnterior.length()>0) {
+				Path rutaFotoAnterior = Paths.get("uploads").resolve(nombreFotoAnterior).toAbsolutePath();
+				File archivoFotoAnterior = rutaFotoAnterior.toFile();
+					
+				if(archivoFotoAnterior.exists() && archivoFotoAnterior.canRead()) {
+					archivoFotoAnterior.delete();
+				}
+				
+			}
+			
+			
+			
 			}catch (DataAccessException e) {//MUY ESPECÍFICO, EXCEPCIONES SOBRE EL DAO
 				response.put("mensaje", "Error al rellenar la consulta a base de datos");
 				response.put("error", e.getMessage().concat(e.getMostSpecificCause().getMessage()));
@@ -201,7 +221,7 @@ public class ClienteRestController {
 		Cliente cliente = servicio.findById(id);
 		
 		if(!archivo.isEmpty()) {
-			String nombreArchivo = archivo.getOriginalFilename();
+			String nombreArchivo = UUID.randomUUID().toString()+"_"+archivo.getOriginalFilename().replace(" ", "");
 			Path rutaArchivo = 	Paths.get("uploads").resolve(nombreArchivo).toAbsolutePath();
 		
 		try {
@@ -215,6 +235,19 @@ public class ClienteRestController {
 			
 		}
 		
+		String nombreFotoAnterior = cliente.getImagen();
+		
+		if(nombreFotoAnterior != null && nombreFotoAnterior.length()>0) {
+			Path rutaFotoAnterior = Paths.get("uploads").resolve(nombreFotoAnterior).toAbsolutePath();
+			File archivoFotoAnterior = rutaFotoAnterior.toFile();
+				
+			if(archivoFotoAnterior.exists() && archivoFotoAnterior.canRead()) {
+				archivoFotoAnterior.delete();
+			}
+			
+		}
+		
+		
 		cliente.setImagen(nombreArchivo);
 		servicio.save(cliente);
 		
@@ -224,6 +257,28 @@ public class ClienteRestController {
 		
 	}
 		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+	}
+	
+	@GetMapping("/uploads/imagen/{nombreImagen:.+}")
+	public ResponseEntity<Resource> verImagen(@PathVariable String nombreImagen){
+		Path rutaImagen = Paths.get("uploads").resolve(nombreImagen).toAbsolutePath();
+		
+		Resource recurso = null;
+		
+		try {
+			recurso = new UrlResource(rutaImagen.toUri());
+			
+		}catch(MalformedURLException e) {
+		 e.printStackTrace();
+		}
+		
+		if(!recurso.exists()&& !recurso.isReadable()) {
+			throw new RuntimeException("Error no se puede cargar al imagen "+nombreImagen);
+		}
+		
+		HttpHeaders cabecera = new HttpHeaders();
+		cabecera.add(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=\"" + recurso.getFilename()+"\"");
+		return new ResponseEntity<Resource>(recurso,cabecera,HttpStatus.OK);
 	}
 		
 	}
